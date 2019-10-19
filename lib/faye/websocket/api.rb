@@ -42,7 +42,7 @@ module Faye
         @onopen = @onmessage = @onclose = @onerror = nil
 
         @driver.on(:open)    { |e| open }
-        @driver.on(:ping)    { |e| puts e.code; puts e.data }
+        @driver.on(:ping)    { |e| puts e }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
 
