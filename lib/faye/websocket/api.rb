@@ -42,8 +42,7 @@ module Faye
         @onopen = @onmessage = @onclose = @onerror = nil
 
         @driver.on(:open)    { |e| open }
-        @driver.on(:ping)    { |e| puts '----------------------ping-------------------------------' }
-        @driver.on(:ping)    { |e| puts '----------------------------------pong-----------------------------------' }
+        @driver.on(:ping)    { |e| ping }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
 
@@ -54,7 +53,6 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
-            ping(@ping_id.to_s)
           end
         end
       end
@@ -73,10 +71,6 @@ module Faye
         end
       end
 
-      def ping(message = '', &callback)
-        return false if @ready_state > OPEN
-        @driver.ping(message, &callback)
-      end
 
       def close(code = nil, reason = nil)
         code   ||= 1000
@@ -99,6 +93,13 @@ module Faye
       end
 
     private
+
+      def ping
+        return unless @ready_state == open
+        event = Event.create('ping')
+        event.init_event('ping', false, false)
+        dispatch_event(event)
+      end
 
       def open
         return unless @ready_state == CONNECTING

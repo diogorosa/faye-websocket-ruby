@@ -26,6 +26,9 @@ module Faye::WebSocket::API
     end
   end
 
+  class PingEvent < Event
+  end
+
   class OpenEvent < Event
   end
 
@@ -45,6 +48,7 @@ module Faye::WebSocket::API
     'open'    => OpenEvent,
     'message' => MessageEvent,
     'close'   => CloseEvent,
+    'ping'   => PingEvent,
     'error'   => ErrorEvent
   }
 
