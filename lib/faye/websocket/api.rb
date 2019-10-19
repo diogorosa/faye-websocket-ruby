@@ -41,6 +41,12 @@ module Faye
         @close_params = @close_timer = @ping_timer = @proxy = @stream = nil
         @onopen = @onmessage = @onclose = @onerror = nil
 
+        @driver.on(:ping) { Rails.logger.debug ['ping', 'ping']}
+        @driver.on(:pong) do |e|
+          Rails.logger.debug ['pong', "----------------pong arrived----------------"]
+          Rails.logger.debug [ 'pong', self.env['HTTP_COOKIE'] ]
+          Rails.logger.debug ['pong', "--------------------------------------------"]
+        end
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
