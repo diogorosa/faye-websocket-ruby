@@ -41,9 +41,14 @@ module Faye::WebSocket::API
     attr_reader :message
   end
 
+  class PongEvent < Event
+    attr_reader :data
+  end
+
   TYPES = {
     'open'    => OpenEvent,
     'message' => MessageEvent,
+    'pong'    => PongEvent,
     'close'   => CloseEvent,
     'error'   => ErrorEvent
   }

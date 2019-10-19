@@ -41,12 +41,7 @@ module Faye
         @close_params = @close_timer = @ping_timer = @proxy = @stream = nil
         @onopen = @onmessage = @onclose = @onerror = nil
 
-        @driver.on(:ping) { Rails.logger.debug ['ping', 'ping']}
-        @driver.on(:pong) do |e|
-          Rails.logger.debug ['pong', "----------------pong arrived----------------"]
-          Rails.logger.debug [ 'pong', self.env['HTTP_COOKIE'] ]
-          Rails.logger.debug ['pong', "--------------------------------------------"]
-        end
+        @driver.on(:pong) { |e| receive_pong(e.data) }
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
@@ -59,6 +54,13 @@ module Faye
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
             ping(@ping_id.to_s)
+          end
+
+          EventMachine.add_periodic_timer(@ping + 1) do
+            Printer.all.pluck(:name).map do |printer_name|
+              Rails.logger.debug [:printer_online, "printer: #{REDIS.exists(printer_name)}"]
+              REDIS.del printer_name
+            end
           end
         end
       end
@@ -109,6 +111,13 @@ module Faye
         @ready_state = OPEN
         event = Event.create('open')
         event.init_event('open', false, false)
+        dispatch_event(event)
+      end
+
+      def receive_pong(data)
+        return unless @ready_state == OPEN
+        event = Event.create('pong', :data => data)
+        event.init_event('pong', false, false)
         dispatch_event(event)
       end
 

@@ -2,7 +2,7 @@ module Faye::WebSocket::API
   module EventTarget
 
     include ::WebSocket::Driver::EventEmitter
-    events = %w[open message error close]
+    events = %w[open message pong error close]
 
     events.each do |event_type|
       define_method "on#{ event_type }=" do |handler|
