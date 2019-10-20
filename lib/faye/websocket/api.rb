@@ -55,13 +55,6 @@ module Faye
             @ping_id += 1
             ping(@ping_id.to_s)
           end
-
-          EventMachine.add_periodic_timer(@ping + 1) do
-            Printer.all.pluck(:name).map do |printer_name|
-              Rails.logger.debug [:printer_online, "printer: #{REDIS.exists(printer_name)}"]
-              REDIS.del printer_name
-            end
-          end
         end
       end
 
