@@ -54,7 +54,7 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
-            if @ping_id - @pong_id == 2
+            if @ping_id - @pong_id == 3
               force_close
             else
               ping(@ping_id.to_s)
