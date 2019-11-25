@@ -36,12 +36,13 @@ module Faye
 
         @ping            = options[:ping]
         @ping_id         = 0
+        @pong_id         = 0
         @buffered_amount = 0
 
         @close_params = @close_timer = @ping_timer = @proxy = @stream = nil
         @onopen = @onmessage = @onclose = @onerror = nil
 
-        @driver.on(:pong) { |e| receive_pong(e.data) }
+        @driver.on(:pong)    { |e| receive_pong(e.data) }
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
@@ -109,6 +110,9 @@ module Faye
 
       def receive_pong(data)
         return unless @ready_state == OPEN
+        @pong_id += 1
+        Rails.logger.debug [:pong, "ping number: #{@ping_id}"]
+        Rails.logger.debug [:pong, "pong number: #{@ping_id}"]
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
         dispatch_event(event)
