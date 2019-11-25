@@ -56,7 +56,7 @@ module Faye
             @ping_id += 1
             Rails.logger.debug [:ping, "ping number: #{@ping_id}"]
             if @ping_id - @pong_id == 2
-              close(1000, 'printer stop pinging')
+              force_close
             else
               ping(@ping_id.to_s)
             end
@@ -83,8 +83,15 @@ module Faye
         @driver.ping(message, &callback)
       end
 
+      def force_close
+        Rails.logger.debug [:close, "starting force close"]
+
+        @ready_state = CLOSING unless @ready_state == CLOSED
+
+        @close_timer = EventMachine.add_timer(2) { begin_close('no ping reply', 1006) }
+      end
+
       def close(code = nil, reason = nil)
-        Rails.logger.debug [:close, "starting"]
         code   ||= 1000
         reason ||= ''
 
