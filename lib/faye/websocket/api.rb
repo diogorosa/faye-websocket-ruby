@@ -54,6 +54,8 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
+            Rails.logger.debug [:ping, "ping number: #{@ping_id}"]
+            Rails.logger.debug [:ping, "pong number: #{@pong_id}"]
             ping(@ping_id.to_s)
           end
         end
@@ -111,8 +113,6 @@ module Faye
       def receive_pong(data)
         return unless @ready_state == OPEN
         @pong_id += 1
-        Rails.logger.debug [:pong, "ping number: #{@ping_id}"]
-        Rails.logger.debug [:pong, "pong number: #{@ping_id}"]
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
         dispatch_event(event)
