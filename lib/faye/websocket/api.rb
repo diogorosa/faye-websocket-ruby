@@ -54,7 +54,6 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
-            Rails.logger.debug [:ping, "ping number: #{@ping_id}"]
             if @ping_id - @pong_id == 2
               force_close
             else
@@ -84,7 +83,6 @@ module Faye
       end
 
       def force_close
-        Rails.logger.debug [:close, "starting force close"]
 
         @ready_state = CLOSING unless @ready_state == CLOSED
 
@@ -125,7 +123,6 @@ module Faye
         return unless @ready_state == OPEN
         @pong_id += 1
 
-        Rails.logger.debug [:ping, "pong number: #{@pong_id}"]
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
         dispatch_event(event)
@@ -148,7 +145,6 @@ module Faye
 
       def begin_close(reason, code, options = {})
         return if @ready_state == CLOSED
-        Rails.logger.debug [:close, "on it"]
         @ready_state = CLOSING
         @close_params = [reason, code]
 
@@ -165,7 +161,6 @@ module Faye
 
       def finalize_close
         return if @ready_state == CLOSED
-        Rails.logger.debug [:close, "finalize"]
         @ready_state = CLOSED
 
         EventMachine.cancel_timer(@close_timer) if @close_timer
