@@ -55,8 +55,7 @@ module Faye
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
             Rails.logger.debug [:ping, "ping number: #{@ping_id}"]
-            Rails.logger.debug [:ping, "pong number: #{@pong_id}"]
-            if @ping_id - @pong_id > 1
+            if @ping_id - @pong_id == 2
               close(1000, 'printer stop pinging')
             else
               ping(@ping_id.to_s)
@@ -85,6 +84,7 @@ module Faye
       end
 
       def close(code = nil, reason = nil)
+        Rails.logger.debug [:close, "starting"]
         code   ||= 1000
         reason ||= ''
 
@@ -117,6 +117,8 @@ module Faye
       def receive_pong(data)
         return unless @ready_state == OPEN
         @pong_id += 1
+
+        Rails.logger.debug [:ping, "pong number: #{@pong_id}"]
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
         dispatch_event(event)
@@ -139,6 +141,7 @@ module Faye
 
       def begin_close(reason, code, options = {})
         return if @ready_state == CLOSED
+        Rails.logger.debug [:close, "on it"]
         @ready_state = CLOSING
         @close_params = [reason, code]
 
@@ -155,6 +158,7 @@ module Faye
 
       def finalize_close
         return if @ready_state == CLOSED
+        Rails.logger.debug [:close, "finalize"]
         @ready_state = CLOSED
 
         EventMachine.cancel_timer(@close_timer) if @close_timer
