@@ -57,7 +57,7 @@ module Faye
             Rails.logger.debug [:ping, "ping number: #{@ping_id}"]
             Rails.logger.debug [:ping, "pong number: #{@pong_id}"]
             if @ping_id - @pong_id > 1
-              close('printer stop pinging', 1006)
+              close(1006, 'printer stop pinging')
             else
               ping(@ping_id.to_s)
             end
