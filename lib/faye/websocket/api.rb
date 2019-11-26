@@ -57,7 +57,7 @@ module Faye
 
             Rails.logger.debug [:ping_different, '-----------------------------------'] if @ping_id - @pong_id > 2
 
-            if @ping_id - @pong_id == 60
+            if @ping_id - @pong_id == 2
               force_close
             else
               ping(@ping_id.to_s)
