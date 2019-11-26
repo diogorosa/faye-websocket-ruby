@@ -56,7 +56,9 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
-            force_close if @ping_id - @pong_id == PING_NO_REPLY_TIMEOUT
+            difference = @ping_id - @pong_id
+            force_close if difference == PING_NO_REPLY_TIMEOUT
+            Rails.logger.debug [:ping_differ, "-----------------------------------#{@ping_id} #{@pong_id}"] if difference > 2 && difference < PING_NO_REPLY_TIMEOUT
             ping(@ping_id.to_s)
           end
         end
@@ -78,7 +80,6 @@ module Faye
 
       def ping(message = '', &callback)
         return false if @ready_state > OPEN
-        Rails.logger.debug [:ping_sent, "-----------------------------------#{@ping_id}"]
         @driver.ping(message, &callback)
       end
 
@@ -122,7 +123,6 @@ module Faye
       def receive_pong(data)
         return unless @ready_state == OPEN
         @pong_id += 1
-        Rails.logger.debug [:pong_received, "-----------------------------------#{@pong_id}"]
 
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
