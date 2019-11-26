@@ -43,7 +43,6 @@ module Faye
         @onopen = @onmessage = @onclose = @onerror = nil
 
         @driver.on(:pong)    { |e| receive_pong(e.data) }
-        @driver.on(:ping)    { |e| receive_ping(e.data) }
         @driver.on(:open)    { |e| open }
         @driver.on(:message) { |e| receive_message(e.data) }
         @driver.on(:close)   { |e| begin_close(e.reason, e.code, :wait_for_write => true) }
@@ -55,6 +54,9 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
+
+            Rails.logger.debug [:ping_different, '-----------------------------------'] if @ping_id - @pong_id > 2
+
             if @ping_id - @pong_id == 60
               force_close
             else
@@ -80,6 +82,7 @@ module Faye
 
       def ping(message = '', &callback)
         return false if @ready_state > OPEN
+        Rails.logger.debug [:ping_sent, "-----------------------------------#{@ping_id}"]
         @driver.ping(message, &callback)
       end
 
@@ -120,13 +123,10 @@ module Faye
         dispatch_event(event)
       end
 
-      def receive_ping(data)
-        Rails.logger.debug [:received_ping, data]
-      end
-
       def receive_pong(data)
         return unless @ready_state == OPEN
         @pong_id += 1
+        Rails.logger.debug [:pong_received, "-----------------------------------#{@pong_id}"]
 
         event = Event.create('pong', :data => data)
         event.init_event('pong', false, false)
