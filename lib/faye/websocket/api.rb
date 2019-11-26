@@ -11,6 +11,8 @@ module Faye
       CLOSED     = 3
 
       CLOSE_TIMEOUT = 30
+      PING_NO_REPLY_TIMEOUT = 30
+      FORCE_CLOSE_TIMEOUT = 2
 
       include EventTarget
 
@@ -54,14 +56,8 @@ module Faye
         if @ping
           @ping_timer = EventMachine.add_periodic_timer(@ping) do
             @ping_id += 1
-
-            Rails.logger.debug [:ping_different, '-----------------------------------'] if @ping_id - @pong_id > 2
-
-            if @ping_id - @pong_id == 2
-              force_close
-            else
-              ping(@ping_id.to_s)
-            end
+            force_close if @ping_id - @pong_id == PING_NO_REPLY_TIMEOUT
+            ping(@ping_id.to_s)
           end
         end
       end
@@ -90,7 +86,7 @@ module Faye
 
         @ready_state = CLOSING unless @ready_state == CLOSED
 
-        @close_timer = EventMachine.add_timer(2) { begin_close('no ping reply', 1006) }
+        @close_timer = EventMachine.add_timer(FORCE_CLOSE_TIMEOUT) { begin_close('no ping reply', 1006) }
       end
 
       def close(code = nil, reason = nil)
