@@ -84,7 +84,6 @@ module Faye
       end
 
       def force_close
-
         @ready_state = CLOSING unless @ready_state == CLOSED
 
         @close_timer = EventMachine.add_timer(FORCE_CLOSE_TIMEOUT) { begin_close('no ping reply', 1006) }
