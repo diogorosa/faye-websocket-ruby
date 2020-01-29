@@ -11,7 +11,7 @@ module Faye
       CLOSED     = 3
 
       CLOSE_TIMEOUT = 30
-      PING_NO_REPLY_TIMEOUT = 30
+      PING_NO_REPLY_TIMEOUT = 2
       FORCE_CLOSE_TIMEOUT = 2
 
       include EventTarget
